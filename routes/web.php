@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\EmployeeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,6 +13,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+$router->group(['prefix' => 'v1'], function () use ($router) {
+     $router->get('/', function () {
+        return view('welcome');
+    });
+    $router->group(['prefix' => 'employee'], function () use ($router) {
+        $router->get('/', [EmployeeController::class, 'index']);
+        $router->post('/add', [EmployeeController::class, 'store']);
+        $router->patch('/', [EmployeeController::class, 'update']);
+        $router->put('/', [EmployeeController::class, 'updateAll']);
+        $router->delete('/', [EmployeeController::class, 'delete']);
+    });
 });

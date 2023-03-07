@@ -11,7 +11,16 @@ services:
     networks:
       rede:
         ipv4_address: 10.5.0.5
-
+  app:
+    image: phpmyadmin/phpmyadmin:latest
+    links:
+      - mysql
+    ports:
+      - 13306:80
+    environment:
+      - PMA_ARBITRARY=1
+    volumes:
+      - ./php-make/upload.ini:/usr/local/etc/php/php.ini
 
 volumes:
   lojaly-pontos-data:
