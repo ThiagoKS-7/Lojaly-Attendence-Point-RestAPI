@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - lojaly-pontos-data:/var/lib/mysql
+    environment: 
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: lojaly-pontos
+    networks:
+      rede:
+        ipv4_address: 10.5.0.5
+
+
+volumes:
+  lojaly-pontos-data:
+networks:
+  rede:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1
+
+
+
+
+
+
+  
