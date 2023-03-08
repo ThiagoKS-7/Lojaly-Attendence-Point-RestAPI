@@ -29,10 +29,10 @@ class EmployeeController extends Controller
     {
         try {
             $this->validate($request, [
-                'name' => 'required',
-                'age' => 'required',
-                'office' => 'required',
-                'resp_adm_id' => 'required'
+                'name' => 'required|string',
+                'age' => 'required|integer',
+                'office' => 'required|string',
+                'resp_adm_id' => 'required|integer'
             ]);
             $funcionario =Employee::create([
                 'name' => $request['name'],
@@ -58,7 +58,7 @@ class EmployeeController extends Controller
     {
         try {
             $this->validate($request, [
-                'id' => 'required',
+                'id' => 'required|integer',
             ]);
             $funcionario = Employee::find($request['id'])->update([
                 'name' => $request['name'],
@@ -84,22 +84,11 @@ class EmployeeController extends Controller
     {
         try {
             $this->validate($request, [
-                'id' => 'required',
+                'id' => 'required|integer',
             ]);
-            $this->validate($request, [
-                'id' => 'required',
-            ]);
-            $funcionario = Employee::find($request['id'])->update([
-                'name' => $request['name'],
-                'age' => $request['age'],
-                'office' => $request['office'],
-                'resp_adm_id' => $request['resp_adm_id']
-            ]);
-            if(empty($funcionario)) {
-                return response()->json($funcionario, 204);
-            }
+            Employee::find($request['id'])->delete();
             return response()->json([
-                'data' => $funcionario,
+                'mensagem' => 'Funcionário deletado!',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
