@@ -5,13 +5,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Admin;
+use App\Models\Employee;
 
 class AuthController extends Controller
 {
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','register']]);
+        $this->middleware('auth:api', ['except' => ['login','register', 'registerAdmin']]);
     }
 
     public function login(Request $request)
@@ -43,28 +45,87 @@ class AuthController extends Controller
     }
 
     public function register(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:200',
-            'email' => 'required|string|email|max:200|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = Auth::login($user);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User created successfully',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:200',
+                'email' => 'required|string|email|max:200|unique:users',
+                'age' => 'required|integer',
+                'office' => 'required|string|max:200',
+                'admin_id' => 'required|integer',
+                'role'=> 'required|in:admin,employee',
+                'password' => 'required|string|min:8',
+            ]);
+            if($request['role'] == "admin"){
+                return response()->json([
+                    'Mensagem' => 'Erro! Esse endpoint cadastra apenas funcionarios',
+                ], 400);
+            }
+            else if(count(Admin::get()) <= 0) {
+                return response()->json([
+                    'Mensagem' => 'Erro! necessario haver ao menos um admin cadastrado',
+                ], 404);
+ 
+            } else if(!Admin::find($request['admin_id'])) {
+                return response()->json([
+                    'Mensagem' => 'Admin nao encontrado.',
+                ], 404);
+            } else if ($request['role'] == "employee") {
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'role' => $request['role'],
+                    'password' => Hash::make($request->password),
+                ]);
+                Employee::create([
+                    'name' => $request['name'],
+                    'age' => $request['age'],
+                    'user_id' => $user['id'],
+                    'office' => $request['office'],
+                    'resp_adm_id' => $request['admin_id'],
+                ]);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Employee created successfully',
+                    'user' => $user,
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'mensagem' => $e->getMessage()
+            ], 400);
+        }
+    }
+    public function registerAdmin(Request $request){
+        try {
+            $request->validate([
+                'name' => 'required|string|max:200',
+                'email' => 'required|string|email|max:200|unique:users',
+                'age' => 'required|integer',
+                'role'=> 'required|in:admin,employee',
+                'password' => 'required|string|min:8',
+            ]);
+            if ($request['role'] =='admin') {
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                ]);
+                Admin::create([
+                    'name' => $request['name'],
+                    'age' => $request['age'],
+                    'user_id' => $user['id'],
+                ]);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Admin created successfully',
+                    'user' => $user,
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'mensagem' => $e->getMessage()
+            ], 400);
+        }
     }
 
     public function logout()

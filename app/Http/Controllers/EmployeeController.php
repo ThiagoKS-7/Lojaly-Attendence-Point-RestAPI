@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\Admin;
 use App\Models\Employee;
 
 class EmployeeController extends Controller
@@ -28,23 +31,33 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         try {
-            $this->validate($request, [
-                'name' => 'required|string',
+            $request->validate([
+                'name' => 'required|string|max:200',
+                'email' => 'required|string|email|max:200|unique:users',
                 'age' => 'required|integer',
-                'office' => 'required|string',
-                'resp_adm_id' => 'required|integer'
+                'role' => 'required|string',
+                'office' => 'required|string|max:200',
+                'admin_id' => 'required|integer',
+                'password' => 'required|string|min:8',
             ]);
-            $funcionario =Employee::create([
+    
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'role' => 'employee',
+                'password' => Hash::make($request->password),
+            ]);
+            Employee::create([
                 'name' => $request['name'],
                 'age' => $request['age'],
+                'user_id' => $user['id'],
                 'office' => $request['office'],
-                'resp_adm_id' => $request['resp_adm_id']
+                'resp_adm_id' => $request['admin_id'],
             ]);
-            if(empty($funcionario)) {
-                return response()->json($funcionario, 204);
-            }
             return response()->json([
-                'data' => $funcionario,
+                'status' => 'success',
+                'message' => 'Employee created successfully',
+                'user' => $user,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -58,20 +71,33 @@ class EmployeeController extends Controller
     {
         try {
             $this->validate($request, [
-                'id' => 'required|integer',
+                'func_id' => 'required|integer',
+                'name' => 'required|string|max:200',
+                'role' => 'required|string',
+                'email' => 'required|string|email|max:200|unique:users',
+                'age' => 'required|integer',
+                'office' => 'required|string|max:200',
+                'admin_id' => 'required|integer',
             ]);
-            $funcionario = Employee::find($request['id'])->update([
+            Employee::where(['id' => $request['func_id']])->update([
                 'name' => $request['name'],
                 'age' => $request['age'],
                 'office' => $request['office'],
-                'resp_adm_id' => $request['resp_adm_id']
+                'resp_adm_id' => $request['admin_id']
             ]);
+            $funcionario = Employee::find($request['func_id']);
             if(empty($funcionario)) {
                 return response()->json($funcionario, 204);
+            } else {
+                User::where(['id' => $funcionario->user_id])->update([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'role' => 'employee',
+                ]);
+                return response()->json([
+                    'data' => $funcionario,
+                ], 200);
             }
-            return response()->json([
-                'data' => $funcionario,
-            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'mensagem' => $e->getMessage()
@@ -84,9 +110,13 @@ class EmployeeController extends Controller
     {
         try {
             $this->validate($request, [
-                'id' => 'required|integer',
+                'func_id' => 'required|integer',
+                'role' => 'required|string',
             ]);
-            Employee::find($request['id'])->delete();
+            
+            $func = Employee::find($request['func_id']);
+            User::find($func['user_id'])->delete();
+            $func->delete();
             return response()->json([
                 'mensagem' => 'Funcionário deletado!',
             ], 200);

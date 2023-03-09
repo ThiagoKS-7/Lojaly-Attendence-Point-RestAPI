@@ -18,15 +18,19 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->get('/', function () {
         return view('welcome');
     });
+    $router->get('/token', function() {
+        return csrf_token();
+    });
     $router->post('login', [AuthController::class, 'login']);
     $router->post('register', [AuthController::class, 'register']);
+    $router->post('admin/register', [AuthController::class, 'registerAdmin']);
     $router->post('logout', [AuthController::class, 'logout']);
     $router->post('refresh', [AuthController::class, 'refresh']);
     $router->post('/attend', [EmployeeController::class, 'store'])->middleware(['auth']);
     $router->group(['prefix' => 'admin'], function () use ($router) {
-        $router->get('/list-employees', [EmployeeController::class, 'index']);
-        $router->post('/add-employee', [EmployeeController::class, 'store']);
-        $router->put('/update-employee', [EmployeeController::class, 'update']);
-        $router->delete('/delete-employee', [EmployeeController::class, 'delete']);
-    })->middleware(['auth','role:admin']);
+        $router->get('/list-employees', [EmployeeController::class, 'index'])->middleware('role:admin');
+        $router->post('/add-employee', [EmployeeController::class, 'store'])->middleware('role:admin');
+        $router->put('/update-employee', [EmployeeController::class, 'update'])->middleware('role:admin');
+        $router->delete('/delete-employee', [EmployeeController::class, 'delete'])->middleware('role:admin');
+    });
 });

@@ -21,7 +21,7 @@ class Admin extends Model
         'signed_in',
         'age',
         'office',
-        'resp_adm_id'
+        'user_id',
     ];
 
     /**
