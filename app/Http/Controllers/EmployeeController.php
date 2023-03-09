@@ -11,9 +11,12 @@ use App\Models\Employee;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
+            $request->validate([
+                'user_id' => 'required|integer',
+            ]);
             $funcionario = DB::select('SELECT * from employee');
             if(empty($funcionario)) {
                 return response()->json($funcionario, 204);
@@ -35,7 +38,7 @@ class EmployeeController extends Controller
                 'name' => 'required|string|max:200',
                 'email' => 'required|string|email|max:200|unique:users',
                 'age' => 'required|integer',
-                'role' => 'required|string',
+                'user_id' => 'required|integer',
                 'office' => 'required|string|max:200',
                 'admin_id' => 'required|integer',
                 'password' => 'required|string|min:8',
@@ -73,7 +76,7 @@ class EmployeeController extends Controller
             $this->validate($request, [
                 'func_id' => 'required|integer',
                 'name' => 'required|string|max:200',
-                'role' => 'required|string',
+                'user_id' => 'required|integer',
                 'email' => 'required|string|email|max:200|unique:users',
                 'age' => 'required|integer',
                 'office' => 'required|string|max:200',
@@ -111,15 +114,20 @@ class EmployeeController extends Controller
         try {
             $this->validate($request, [
                 'func_id' => 'required|integer',
-                'role' => 'required|string',
+                'user_id' => 'required|integer',
             ]);
             
-            $func = Employee::find($request['func_id']);
-            User::find($func['user_id'])->delete();
-            $func->delete();
+            $func = Employee::where(['id'=>$request['func_id']])->get()->first();
+            if (!empty($func)) {
+                User::find($func['user_id'])->delete();
+                $func->delete();
+                return response()->json([
+                    'mensagem' => 'Funcionario deletado!',
+                ], 200);
+            }
             return response()->json([
-                'mensagem' => 'Funcionário deletado!',
-            ], 200);
+                'mensagem' => 'Funcionario nao encontrado!',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'mensagem' => $e->getMessage()
