@@ -15,11 +15,13 @@ class EnsureUserHasRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
- 
+        
         return (
-            $request->user()->hasRole($role) ? 
+           ($request['role'] === $role) ? 
             $next($request) : 
-            route('v1/login')
+            response()->json([
+                'mensagem' => "Erro! Permissao insuficiente, somente o admin pode ter acesso."
+            ], 405)
         );
     }
  

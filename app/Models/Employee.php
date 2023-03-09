@@ -21,8 +21,8 @@ class Employee extends Model
         'name',
         'signed_in',
         'age',
-        'role',
         'office',
+        'user_id',
         'resp_adm_id'
     ];
 
