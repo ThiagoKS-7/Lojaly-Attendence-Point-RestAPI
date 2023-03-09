@@ -5,7 +5,10 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
- 
+use App\Models\User;
+
+use function PHPUnit\Framework\isEmpty;
+
 class EnsureUserHasRole
 {
     /**
@@ -15,14 +18,18 @@ class EnsureUserHasRole
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        
-        return (
-           ($request['role'] === $role) ? 
-            $next($request) : 
-            response()->json([
+        $user = User::where(['id'=>$request['user_id']])->get()->first();
+        if (strlen($user['remember_token']) <= 0) {
+            return response()->json([
+                'mensagem' => "Erro! Uusario nao esta logado."
+            ], 401);
+        }
+        else if (  ($user['role'] !== $role)) {
+            return    response()->json([
                 'mensagem' => "Erro! Permissao insuficiente, somente o admin pode ter acesso."
-            ], 405)
-        );
+            ], 403);
+        } 
+        return $next($request);
     }
  
 }

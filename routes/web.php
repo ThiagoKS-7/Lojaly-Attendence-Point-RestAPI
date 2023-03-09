@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendenceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AuthController;
@@ -15,18 +16,12 @@ use App\Http\Controllers\AuthController;
 */
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
-    $router->get('/', function () {
-        return view('welcome');
-    });
-    $router->get('/token', function() {
-        return csrf_token();
-    });
     $router->post('login', [AuthController::class, 'login']);
     $router->post('register', [AuthController::class, 'register']);
     $router->post('admin/register', [AuthController::class, 'registerAdmin']);
     $router->post('logout', [AuthController::class, 'logout']);
     $router->post('refresh', [AuthController::class, 'refresh']);
-    $router->post('/attend', [EmployeeController::class, 'store'])->middleware(['auth']);
+    $router->post('/attend', [AttendenceController::class, 'store']);
     $router->group(['prefix' => 'admin'], function () use ($router) {
         $router->get('/list-employees', [EmployeeController::class, 'index'])->middleware('role:admin');
         $router->post('/add-employee', [EmployeeController::class, 'store'])->middleware('role:admin');

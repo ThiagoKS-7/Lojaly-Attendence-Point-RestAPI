@@ -4,24 +4,51 @@ namespace App\Http\Controllers;
 
 use App\Models\AttendencePoint;
 use Illuminate\Http\Request;
-
+use App\Models\User;
+use App\Models\Employee;
+use App\Models\Admin;
+use Illuminate\Support\Arr;
+#TODO: STORE, INDEX, UPDATE, DELETE
 class AttendenceController extends Controller
 {
     public function store(Request $request)
     {
         try {
             $this->validate($request, [
-                'user_id' => 'required|integer',
+                'func_id' => 'required|integer',
                 'adm_id' => 'required|integer',
-                'role' => 'required|string',
+                'user_id'=> 'required|integer',
             ]);
-            $funcionario =AttendencePoint::create([
-                'employee_id' => $request['user_id'],
-                'resp_adm_id' => $request['adm_id']
-            ]);
-            return response()->json([
-                'data' => $funcionario,
-            ], 200);
+
+            $user = User::where(['id'=>$request['user_id']])->get()->first();
+            $func = Employee::where(['id'=>$request['func_id']])->get()->first();
+            $adm = Admin::where(['id'=>$request['adm_id']])->get()->first();
+            
+            [$key, $notFoundLabels] = Arr::divide(Arr::except([
+                empty($user)=>"Usuario",
+                empty($func)=>"Funcionario",
+                empty($adm)=>"Admin",
+            ], [false]));
+
+            if (count($notFoundLabels) > 0) {
+                return response()->json([
+                    'mensagem' => "Erro! ". $notFoundLabels[0]." nao econtrado!."
+                ], 401);
+            }
+            else if (strlen($user['remember_token']) <= 0) {
+                return response()->json([
+                    'mensagem' => "Erro! Usuario nao esta logado."
+                ], 401);
+            } else {
+                $funcionario =AttendencePoint::create([
+                    'employee_id' => $request['func_id'],
+                    'resp_adm_id' => $request['adm_id']
+                ]);
+    
+                return response()->json([
+                    'data' => $funcionario,
+                ], 200);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'mensagem' => $e->getMessage()

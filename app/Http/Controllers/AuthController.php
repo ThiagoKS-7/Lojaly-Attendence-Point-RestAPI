@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Admin;
 use App\Models\Employee;
-
+#TODO: LOGIN, LOGOUT
 class AuthController extends Controller
 {
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','register', 'registerAdmin']]);
+        $this->middleware('auth:api', ['except' => ['login','logout','register','refresh', 'registerAdmin']]);
     }
 
     public function login(Request $request)
@@ -22,25 +22,25 @@ class AuthController extends Controller
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
-        $credentials = $request->only('email', 'password');
-
-        $token = Auth::attempt($credentials);
-        if (!$token) {
+        $login = User::where(['email'=> $request['email']])->get()->first();
+        if (Hash::check($request['password'],$login['password'])) {
+            $newToken = $login->createToken('MyApp')->plainTextToken;
+            User::where(['id' => $login['id']])->update(['remember_token'=> $newToken]);
+            Auth::login($login);
             return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 401);
+                    'status' => 'success',
+                    'user' => Auth::user(),
+                    'auth' => [
+                        'token' => $newToken,
+                        'type' => 'bearer',
+                    ]
+                ]);
         }
-
-        $user = Auth::user();
         return response()->json([
-                'status' => 'success',
-                'user' => $user,
-                'authorisation' => [
-                    'token' => $token,
-                    'type' => 'bearer',
-                ]
-            ]);
+            'status' => 'error',
+            'message' => 'Unauthorized',
+        ], 401);
+
 
     }
 
@@ -76,6 +76,8 @@ class AuthController extends Controller
                     'role' => $request['role'],
                     'password' => Hash::make($request->password),
                 ]);
+                $token = $user->createToken('MyApp')->plainTextToken;
+                User::where(['id' => $user['id']])->update(['remember_token'=> $token]);
                 Employee::create([
                     'name' => $request['name'],
                     'age' => $request['age'],
@@ -83,10 +85,15 @@ class AuthController extends Controller
                     'office' => $request['office'],
                     'resp_adm_id' => $request['admin_id'],
                 ]);
+                Auth::login($user);
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Employee created successfully',
-                    'user' => $user,
+                    'user' => Auth::user(),
+                    'auth'=> [
+                        'token' => $token,
+                        'type' => 'bearer',
+                    ]
                 ], 200);
             }
         } catch (\Exception $e) {
@@ -110,6 +117,8 @@ class AuthController extends Controller
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                 ]);
+                $token = $user->createToken('MyApp')->plainTextToken;
+                User::where(['id' => $user['id']])->update(['remember_token'=> $token]);
                 Admin::create([
                     'name' => $request['name'],
                     'age' => $request['age'],
@@ -119,6 +128,10 @@ class AuthController extends Controller
                     'status' => 'success',
                     'message' => 'Admin created successfully',
                     'user' => $user,
+                    'auth'=> [
+                        'token' => $token,
+                        'type' => 'bearer',
+                    ]
                 ], 200);
             }
         } catch (\Exception $e) {
@@ -128,25 +141,24 @@ class AuthController extends Controller
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::logout();
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Successfully logged out',
-        ]);
+        try {
+            $request->validate([
+                'user_id' => 'required|integer',
+            ]);
+            if ($request) {
+                User::where(['id' => $request['user_id']])->update(['remember_token'=> ""]);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Successfully logged out',
+                ]);
+            }
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'mensagem' => $e->getMessage()
+            ], 400);
+        }
     }
-
-    public function refresh()
-    {
-        return response()->json([
-            'status' => 'success',
-            'user' => Auth::user(),
-            'authorisation' => [
-                'token' => Auth::refresh(),
-                'type' => 'bearer',
-            ]
-        ]);
-    }
-
 }
