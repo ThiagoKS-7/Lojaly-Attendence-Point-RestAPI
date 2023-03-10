@@ -11,10 +11,6 @@ use App\Models\Employee;
 class AuthController extends Controller
 {
 
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login','logout','register','refresh', 'registerAdmin']]);
-    }
 
     public function login(Request $request)
     {
@@ -133,6 +129,43 @@ class AuthController extends Controller
                         'type' => 'bearer',
                     ]
                 ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'mensagem' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function getUserById($id) {
+        try {
+            $user = User::find($id);
+            if ($user['role'] == 'admin') {
+
+                return Admin::select([
+                    'adm.user_id as id',
+                    'usr.role',
+                    'adm.age',
+                    'adm.name',
+                    'usr.email',
+                    'usr.remember_token as token'
+                ])
+                ->leftJoin('users as usr', 'usr.id', '=', 'adm.user_id')
+                ->where('usr.id', intval($id))->get()->first();
+            }
+            else if ($user['role'] == 'employee') {
+
+                return Employee::select([
+                    'emp.user_id as id',
+                    'usr.role',
+                    'emp.age',
+                    'emp.office',
+                    'emp.name',
+                    'usr.email',
+                    'usr.remember_token as token'
+                ])
+                ->leftJoin('users as usr', 'usr.id', '=', 'emp.user_id')
+                ->where('usr.id', intval($id))->get()->first();
             }
         } catch (\Exception $e) {
             return response()->json([

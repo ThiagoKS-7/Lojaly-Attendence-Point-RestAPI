@@ -14,7 +14,7 @@ class Admin extends Model
      *
      * @var array<int, string>
      */
-    protected $table = 'admin';
+    protected $table = 'admin as adm';
 
     protected $fillable = [
         'name',

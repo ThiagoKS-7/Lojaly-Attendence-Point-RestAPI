@@ -22,8 +22,12 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->post('logout', [AuthController::class, 'logout']);
     $router->post('refresh', [AuthController::class, 'refresh']);
     $router->post('/attend', [AttendenceController::class, 'store']);
+  
+    $router->get('/recents/{id}', [AttendenceController::class, 'recents']);
+    $router->get('/user/{id}', [AuthController::class, 'getUserById']);
     $router->group(['prefix' => 'admin'], function () use ($router) {
         $router->get('/list-employees', [EmployeeController::class, 'index'])->middleware('role:admin');
+        $router->post('/list-attendences', [AttendenceController::class, 'list'])->middleware('role:admin');
         $router->post('/add-employee', [EmployeeController::class, 'store'])->middleware('role:admin');
         $router->put('/update-employee', [EmployeeController::class, 'update'])->middleware('role:admin');
         $router->delete('/delete-employee', [EmployeeController::class, 'delete'])->middleware('role:admin');
