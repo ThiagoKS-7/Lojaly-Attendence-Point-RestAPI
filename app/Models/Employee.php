@@ -15,7 +15,7 @@ class Employee extends Model
      *
      * @var array<int, string>
      */
-    protected $table = 'employee';
+    protected $table = 'employee as emp';
 
     protected $fillable = [
         'name',

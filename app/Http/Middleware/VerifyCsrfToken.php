@@ -20,6 +20,7 @@ class VerifyCsrfToken extends Middleware
         '/v1/admin/add-employee',
         '/v1/admin/update-employee',
         '/v1/admin/delete-employee',
-        '/v1/attend'
+        '/v1/attend',
+        '/v1/user'
     ];
 }

@@ -8,9 +8,37 @@ use App\Models\User;
 use App\Models\Employee;
 use App\Models\Admin;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+
 #TODO: STORE, INDEX, UPDATE, DELETE
 class AttendenceController extends Controller
 {
+    public function list() {
+        try {
+            return AttendencePoint::select([
+                'ap.id',
+                'e.name',
+                'e.office',
+                'e.age',
+                'ad.name as admin_name',
+                'ad.created_at'
+            ])
+            ->leftJoin('employee as e', 'e.id', '=', 'ap.employee_id')
+            ->leftJoin('admin as ad', 'ad.id', '=', 'ap.resp_adm_id')->get();
+        }  catch (\Exception $e) {
+            return response()->json([
+                'mensagem' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function recents($id) {
+        return AttendencePoint::select("*")
+        ->where('employee_id', $id)
+        ->limit(8)
+        ->get();
+    }
+
     public function store(Request $request)
     {
         try {

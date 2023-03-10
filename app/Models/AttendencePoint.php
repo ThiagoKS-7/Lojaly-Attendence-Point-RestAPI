@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AttendencePoint extends Model
 {
     use HasFactory;
-    protected $table = 'attendence_point';
+    protected $table = 'attendence_point as ap';
          /**
      * The attributes that are mass assignable.
      *
