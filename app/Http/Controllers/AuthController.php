@@ -159,12 +159,14 @@ class AuthController extends Controller
                     'emp.user_id as id',
                     'usr.role',
                     'emp.age',
+                    'adm.name as admin_name',
                     'emp.office',
                     'emp.name',
                     'usr.email',
                     'usr.remember_token as token'
                 ])
                 ->leftJoin('users as usr', 'usr.id', '=', 'emp.user_id')
+                ->leftJoin('admin as adm', 'adm.id', '=', 'emp.resp_adm_id')
                 ->where('usr.id', intval($id))->get()->first();
             }
         } catch (\Exception $e) {
