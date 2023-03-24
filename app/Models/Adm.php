@@ -5,25 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Employee extends Model
+class Adm extends Model
 {
     use HasFactory;
 
-
-        /**
+         /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
-    protected $table = 'employee';
+    protected $table = 'admin as adm';
 
     protected $fillable = [
         'name',
-        'signed_in',
         'age',
-        'office',
         'user_id',
-        'resp_adm_id'
     ];
 
     /**
@@ -35,5 +31,4 @@ class Employee extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
 }

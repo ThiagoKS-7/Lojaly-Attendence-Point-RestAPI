@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Admin;
+use App\Models\Adm;
+use Carbon\Carbon;
 use App\Models\Employee;
-#TODO: LOGIN, LOGOUT
+use App\Models\Emp;
+
 class AuthController extends Controller
 {
 
@@ -142,7 +145,7 @@ class AuthController extends Controller
             $user = User::find($id);
             if ($user['role'] == 'admin') {
 
-                return Admin::select([
+                return Adm::select([
                     'adm.user_id as id',
                     'usr.role',
                     'adm.age',
@@ -155,7 +158,7 @@ class AuthController extends Controller
             }
             else if ($user['role'] == 'employee') {
 
-                return Employee::select([
+                return Emp::select([
                     'emp.user_id as id',
                     'usr.role',
                     'emp.age',
