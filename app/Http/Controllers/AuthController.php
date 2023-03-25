@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Admin;
+use App\Models\Adm;
+use Carbon\Carbon;
 use App\Models\Employee;
-#TODO: LOGIN, LOGOUT
+use App\Models\Emp;
+
 class AuthController extends Controller
 {
 
@@ -22,10 +25,14 @@ class AuthController extends Controller
         if (Hash::check($request['password'],$login['password'])) {
             $newToken = $login->createToken('MyApp')->plainTextToken;
             User::where(['id' => $login['id']])->update(['remember_token'=> $newToken]);
+            $emp = Employee::where(['user_id' => $login['id']])->get()->first();
             Auth::login($login);
+            $user = Auth::user();
+            $user["adm_id"] =  $emp["resp_adm_id"];
+            $user["emp_id"] =  $emp["id"];
             return response()->json([
                     'status' => 'success',
-                    'user' => Auth::user(),
+                    'user' => $user,
                     'auth' => [
                         'token' => $newToken,
                         'type' => 'bearer',
@@ -81,11 +88,15 @@ class AuthController extends Controller
                     'office' => $request['office'],
                     'resp_adm_id' => $request['admin_id'],
                 ]);
+                $emp = Employee::where(['user_id' => $user['id']])->get()->first();
                 Auth::login($user);
+                $user = Auth::user(); 
+                $user["adm_id"] = $request['admin_id'];
+                $user["emp_id"] = $user["id"];
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Employee created successfully',
-                    'user' => Auth::user(),
+                    'user' => $user,
                     'auth'=> [
                         'token' => $token,
                         'type' => 'bearer',
@@ -142,7 +153,7 @@ class AuthController extends Controller
             $user = User::find($id);
             if ($user['role'] == 'admin') {
 
-                return Admin::select([
+                return Adm::select([
                     'adm.user_id as id',
                     'usr.role',
                     'adm.age',
@@ -155,8 +166,9 @@ class AuthController extends Controller
             }
             else if ($user['role'] == 'employee') {
 
-                return Employee::select([
+                return Emp::select([
                     'emp.user_id as id',
+                    'adm.id as adm_id',
                     'usr.role',
                     'emp.age',
                     'adm.name as admin_name',
