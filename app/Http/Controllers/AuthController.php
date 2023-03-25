@@ -25,10 +25,14 @@ class AuthController extends Controller
         if (Hash::check($request['password'],$login['password'])) {
             $newToken = $login->createToken('MyApp')->plainTextToken;
             User::where(['id' => $login['id']])->update(['remember_token'=> $newToken]);
+            $emp = Employee::where(['user_id' => $login['id']])->get()->first();
             Auth::login($login);
+            $user = Auth::user();
+            $user["adm_id"] =  $emp["resp_adm_id"];
+            $user["emp_id"] =  $emp["id"];
             return response()->json([
                     'status' => 'success',
-                    'user' => Auth::user(),
+                    'user' => $user,
                     'auth' => [
                         'token' => $newToken,
                         'type' => 'bearer',
@@ -84,11 +88,15 @@ class AuthController extends Controller
                     'office' => $request['office'],
                     'resp_adm_id' => $request['admin_id'],
                 ]);
+                $emp = Employee::where(['user_id' => $user['id']])->get()->first();
                 Auth::login($user);
+                $user = Auth::user(); 
+                $user["adm_id"] = $request['admin_id'];
+                $user["emp_id"] = $user["id"];
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Employee created successfully',
-                    'user' => Auth::user(),
+                    'user' => $user,
                     'auth'=> [
                         'token' => $token,
                         'type' => 'bearer',
@@ -160,6 +168,7 @@ class AuthController extends Controller
 
                 return Emp::select([
                     'emp.user_id as id',
+                    'adm.id as adm_id',
                     'usr.role',
                     'emp.age',
                     'adm.name as admin_name',
