@@ -26,10 +26,12 @@ class AuthController extends Controller
             $newToken = $login->createToken('MyApp')->plainTextToken;
             User::where(['id' => $login['id']])->update(['remember_token'=> $newToken]);
             $emp = Employee::where(['user_id' => $login['id']])->get()->first();
+            $adm = Admin::where(['id' => $emp["resp_adm_id"]])->get()->first();
             Auth::login($login);
             $user = Auth::user();
             $user["adm_id"] =  $emp["resp_adm_id"];
             $user["emp_id"] =  $emp["id"];
+            $user["adm_name"] = $adm["name"];
             return response()->json([
                     'status' => 'success',
                     'user' => $user,
@@ -89,10 +91,12 @@ class AuthController extends Controller
                     'resp_adm_id' => $request['admin_id'],
                 ]);
                 $emp = Employee::where(['user_id' => $user['id']])->get()->first();
+                $adm = Admin::where(['id' => $request['admin_id']])->get()->first();
                 Auth::login($user);
                 $user = Auth::user(); 
                 $user["adm_id"] = $request['admin_id'];
                 $user["emp_id"] = $user["id"];
+                $user["adm_name"] = $adm["name"];
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Employee created successfully',
