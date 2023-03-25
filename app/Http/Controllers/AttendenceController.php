@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendencePoint;
+use App\Models\AttPoint;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Employee;
@@ -15,7 +16,7 @@ class AttendenceController extends Controller
 {
     public function list() {
         try {
-            return AttendencePoint::select([
+            return AttPoint::select([
                 'ap.id',
                 'e.name',
                 'e.office',
